@@ -8,7 +8,7 @@ async fn main() {
     use leptos_axum::{generate_route_list, LeptosRoutes};
     use seqlines::app::*;
     use seqlines::fileserv::file_and_error_handler;
-    use seqlines::sequence::RawSequence;
+    use seqlines::sequence::Sequence;
 
     simple_logger::init_with_level(log::Level::Debug).expect("couldn't initialize logging");
 
@@ -21,12 +21,12 @@ async fn main() {
     let leptos_options = conf.leptos_options;
     let addr = leptos_options.site_addr;
     let routes = generate_route_list(App);
-    let seq = RawSequence { content : "Initialized content".to_string() };
+    let seq = Sequence::empty();
 
     // build our application with a route
     let app = Router::new()
-        .route("/state", get(seqlines::sequence::display_sequence))
-        .route("/state", post(seqlines::sequence::update_sequence))
+        .route("/state", get(seqlines::seqserv::display_sequence))
+        .route("/state", post(seqlines::seqserv::update_sequence))
         .route("/test", get(test_route))
         .route("/api/*fn_name", post(leptos_axum::handle_server_fns))
         // .leptos_routes(&leptos_options, routes, App)
