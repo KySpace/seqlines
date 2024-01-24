@@ -1,3 +1,7 @@
+use seqlines::{app::HomePage, sequence::Sequence};
+use seqlines::seqserv::SequenceRef;
+use axum::{extract::State, response::Html, routing::get, Router};
+
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
@@ -27,6 +31,7 @@ async fn main() {
     let app = Router::new()
         .route("/state", get(seqlines::seqserv::display_sequence))
         .route("/state", post(seqlines::seqserv::update_sequence))
+        .route("/", get(get_leptos_component))
         .route("/test", get(test_route))
         .route("/api/*fn_name", post(leptos_axum::handle_server_fns))
         // .leptos_routes(&leptos_options, routes, App)
@@ -44,6 +49,10 @@ async fn main() {
 
 async fn test_route() -> &'static str {
     "A test on the server."
+}
+
+async fn get_leptos_component(State(seq): State<SequenceRef>) -> Html<String> {
+    leptos::ssr::render_to_string(HomePage).to_string().into()
 }
 
 #[cfg(not(feature = "ssr"))]
