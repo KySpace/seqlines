@@ -3,29 +3,29 @@ use serde_with::{serde_as, BoolFromInt};
 use serde_json;
 
 #[derive(Serialize, Deserialize, Debug)]
-struct AnalogSeq {
-    amplitude   : Vec<f64>,
-    times       : Vec<f64>,
+pub struct AnalogSeq {
+    pub amplitude   : Vec<f64>,
+    pub times       : Vec<f64>,
 }
 #[derive(Serialize, Deserialize, Debug)]
-struct DigitalSeq {
+pub struct DigitalSeq {
     #[serde(deserialize_with = "deserialize_bool")]
-    value       : Vec<bool>,
-    times       : Vec<f64>,
+    pub value       : Vec<bool>,
+    pub times       : Vec<f64>,
 }   
 #[derive(Serialize, Deserialize, Debug)]
-struct RS485Seq {
+pub struct RS485Seq {
     #[serde(deserialize_with = "deserialize_str")]
-    command     : Vec<String>,
-    times       : Vec<f64>,
+    pub command     : Vec<String>,
+    pub times       : Vec<f64>,
 }     
 #[derive(Serialize, Deserialize, Debug)]
-struct VCOSeq {
-    frequency   : Vec<f64>,
-    times       : Vec<f64>,
+pub struct VCOSeq {
+    pub frequency   : Vec<f64>,
+    pub times       : Vec<f64>,
 }       
 #[derive(Serialize, Deserialize, Debug)]
-struct DDSSeq {
+pub struct DDSSeq {
     amplitude : Vec<f64>,
     frequency : Vec<f64>,
     #[serde(deserialize_with = "deserialize_bool")]
@@ -35,7 +35,7 @@ struct DDSSeq {
 }       
 #[serde_as]
 #[derive(Serialize, Deserialize, Debug)]
-struct PulseGenSeq {
+pub struct PulseGenSeq {
     #[serde(rename = "tDelay")]
     time_delay : f64,
     #[serde(rename = "tWidth")]
@@ -44,7 +44,7 @@ struct PulseGenSeq {
     polarity : bool,
 }  
 #[derive(Serialize, Deserialize, Debug)]
-struct FreqFBSeq {
+pub struct FreqFBSeq {
 }    
 #[derive(Serialize, Deserialize, Debug)]
 pub enum DeviceDependentData {
@@ -60,11 +60,11 @@ pub enum DeviceDependentData {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ChannelSequence {
     #[serde(rename = "data")]
-    device_dependent    : DeviceDependentData,
-    name                : String,
+    pub device_dependent    : DeviceDependentData,
+    pub name                : String,
     #[serde(rename = "sigchan")]
-    index_sigchan       : u8,
-    address             : u8,
+    pub index_sigchan       : u8,
+    pub address             : u8,
 }
 
 // How to map with result?
@@ -93,7 +93,7 @@ where
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Sequence {
-    seq_channel : Vec<ChannelSequence>,
+    pub seq_channel : Vec<ChannelSequence>,
 }
 
 impl Sequence {

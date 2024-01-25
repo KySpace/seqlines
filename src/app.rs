@@ -1,4 +1,5 @@
 use crate::error_template::{AppError, ErrorTemplate};
+use crate::seqserv::SequenceRef;
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
@@ -113,7 +114,8 @@ pub fn App() -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 pub fn HomePage() -> impl IntoView {
-    let plot = test("static plot").to_string();
+    let sequence : SequenceRef = expect_context::<SequenceRef>();
+    let plot = (*sequence.clone().lock().unwrap()).to_html();
     view! {
         <div inner_html=plot/>
     }

@@ -1,9 +1,8 @@
 use cfg_if::cfg_if;
-pub mod app;
 pub mod error_template;
-pub mod fileserv;
 pub mod sequence;
-pub mod seqserv;
+pub mod seqserv;    
+pub mod plotlines;
 
 cfg_if! { if #[cfg(feature = "hydrate")] {
     use leptos::*;

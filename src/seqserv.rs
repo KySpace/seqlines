@@ -14,7 +14,6 @@ cfg_if! { if #[cfg(feature = "ssr")] {
     use tower::ServiceExt;
     use tower_http::services::ServeDir;
     use leptos::*;
-    use crate::app::App;
     use crate::sequence::Sequence;
 
     
