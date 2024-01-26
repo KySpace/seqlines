@@ -1,8 +1,8 @@
 use crate::error_template::{AppError, ErrorTemplate};
-use crate::seqserv::SequenceRef;
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
+use crate::sequence::Sequence;
 
 use plotly::common::{
     Fill, Font, Mode, Title,
@@ -114,7 +114,7 @@ pub fn App() -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 pub fn HomePage() -> impl IntoView {
-    let sequence : SequenceRef = expect_context::<SequenceRef>();
+    let sequence : super::seqserv::SequenceRef = expect_context::<super::seqserv::SequenceRef>();
     let plot = (*sequence.clone().lock().unwrap()).to_html();
     view! {
         <div inner_html=plot/>

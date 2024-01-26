@@ -2,6 +2,10 @@ use std::{fs::File, io::{Write, Read, BufReader}};
 use std::sync::{Arc, Mutex};
 use cfg_if::cfg_if;
 
+use crate::sequence::Sequence;    
+
+pub type SequenceRef = Arc<Mutex<Sequence>>;
+
 cfg_if! { if #[cfg(feature = "ssr")] {
     use axum::{
         body::{boxed, Body, BoxBody},
@@ -14,11 +18,6 @@ cfg_if! { if #[cfg(feature = "ssr")] {
     use tower::ServiceExt;
     use tower_http::services::ServeDir;
     use leptos::*;
-    use crate::sequence::Sequence;
-
-    
-
-    pub type SequenceRef = Arc<Mutex<Sequence>>;
 
     pub async fn update_sequence(uri: Uri, State(seq): State<SequenceRef>, axum::Json(new_seq) : axum::Json<String>) -> axum::response::Response {
         // let mut file = File::create("test.json").unwrap();

@@ -1,6 +1,8 @@
 use cfg_if::cfg_if;
+pub mod app;
 pub mod error_template;
 pub mod sequence;
+pub mod fileserv;
 pub mod seqserv;    
 pub mod plotlines;
 
