@@ -114,9 +114,7 @@ pub fn App() -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 pub fn HomePage() -> impl IntoView {
-    let sequence : super::seqserv::SequenceRef = expect_context::<super::seqserv::SequenceRef>();
-    let plot = (*sequence.clone().lock().unwrap()).to_html();
     view! {
-        <div inner_html=plot/>
+        HomePage
     }
 }

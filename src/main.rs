@@ -1,6 +1,15 @@
+use std::sync::Arc;
+
+use leptos::LeptosOptions;
 use seqlines::{app::HomePage, sequence::Sequence};
 use seqlines::seqserv::SequenceRef;
 use axum::{extract::State, response::Html, routing::get, Router};
+
+#[derive(Clone, Debug, axum::extract::FromRef)]
+struct AppState {
+    leptos_options : LeptosOptions,
+    sequence_ref : SequenceRef,
+}
 
 #[cfg(feature = "ssr")]
 #[tokio::main]
@@ -25,18 +34,19 @@ async fn main() {
     let leptos_options = conf.leptos_options;
     let addr = leptos_options.site_addr;
     let routes = generate_route_list(App);
-    let seq = Sequence::empty();
+    let sequence_ref = Arc::new(Mutex::new(Sequence::empty()));
+    let app_state = AppState { leptos_options, sequence_ref };
 
     // build our application with a route
     let app = Router::new()
         .route("/state", get(seqlines::seqserv::display_sequence))
         .route("/state", post(seqlines::seqserv::update_sequence))
-        .route("/", get(get_leptos_component))
+        // .route("/", get(get_leptos_component))
         .route("/test", get(test_route))
         .route("/api/*fn_name", post(leptos_axum::handle_server_fns))
-        // .leptos_routes(&leptos_options, routes, App)
-        // .fallback(file_and_error_handler)
-        .with_state(Arc::new(Mutex::new(seq)));
+        .leptos_routes(&app_state, routes, App)
+        .fallback(file_and_error_handler)
+        .with_state(app_state);
 
     // run our app with hyper
     // `axum::Server` is a re-export of `hyper::Server`
