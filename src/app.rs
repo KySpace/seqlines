@@ -115,6 +115,6 @@ pub fn App() -> impl IntoView {
 #[component]
 pub fn HomePage() -> impl IntoView {
     view! {
-        <iframe src="/state/display" title="plotly plots" style="border:none;"></iframe>
+        <iframe src="/state/display" title="plotly plots" style="border:none;" width="100%" height="1000"></iframe>
     }
 }

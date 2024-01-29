@@ -27,7 +27,7 @@ http = "0.2.8"
 serde_with = "3.4.0"
 serde = "1.0.195"
 serde_json = "1.0.111"
-plotly = "0.8.4"
+plotly = { version = "0.8.4", features = ["wasm"] }
 
 [features]
 default = [ "ssr" ]

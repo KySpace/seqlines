@@ -1581,6 +1581,8 @@ dependencies = [
  "askama",
  "dyn-clone",
  "erased-serde",
+ "getrandom",
+ "js-sys",
  "once_cell",
  "plotly_derive",
  "rand",
@@ -1588,6 +1590,8 @@ dependencies = [
  "serde_json",
  "serde_repr",
  "serde_with 2.3.3",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
 ]
 
 [[package]]
