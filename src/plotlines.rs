@@ -22,7 +22,7 @@ impl Sequence {
             let layout = Layout::new().title(Title::new("Innocent Trial"))
             .plot_background_color(NamedColor::AliceBlue);
             plot.set_layout(layout);
-            plot.to_html()
+            plot.to_inline_html(None)
         }
         else {
             "Nothing here".to_string()

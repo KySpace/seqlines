@@ -32,7 +32,10 @@ cfg_if! { if #[cfg(feature = "ssr")] {
         seq_inner.into_json().into_response()
     }
 
-    pub async fn display_plot_content() {
-
+    pub async fn display_plot_content(uri: Uri, State(seq): State<SequenceRef>, req: Request<Body>) -> axum::response::Html<String> {
+        println!("Trying to send to client");
+        let str = (*seq.clone().lock().unwrap()).to_html();
+        println!("{}", str);
+        axum::response::Html(str)
     }
 }}

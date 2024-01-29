@@ -41,6 +41,7 @@ async fn main() {
     let app = Router::new()
         .route("/state", get(seqlines::seqserv::display_sequence))
         .route("/state", post(seqlines::seqserv::update_sequence))
+        .route("/state/display", get(seqlines::seqserv::display_plot_content))
         // .route("/", get(get_leptos_component))
         .route("/test", get(test_route))
         .route("/api/*fn_name", post(leptos_axum::handle_server_fns))
