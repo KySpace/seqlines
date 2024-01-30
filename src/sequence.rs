@@ -26,12 +26,12 @@ pub struct VCOSeq {
 }       
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DDSSeq {
-    amplitude : Vec<f64>,
-    frequency : Vec<f64>,
+    pub amplitude : Vec<f64>,
+    pub frequency : Vec<f64>,
     #[serde(deserialize_with = "deserialize_bool")]
-    feature_enable : Vec<bool>,
-    feature_value  : Vec<f64>,
-    times       : Vec<f64>,
+    pub feature_enable : Vec<bool>,
+    pub feature_value  : Vec<f64>,
+    pub times       : Vec<f64>,
 }       
 #[serde_as]
 #[derive(Serialize, Deserialize, Debug)]
