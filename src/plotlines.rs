@@ -2,6 +2,7 @@ use std::fmt::Debug;
 use std::collections::HashMap;
 use crate::sequence::{AnalogSeq, DDSSeq, DeviceDependentData, Sequence};
 
+use leptos::with;
 use plotly::common::{
     Fill, Font, Label, Mode, PlotType, Title
 };
@@ -47,7 +48,9 @@ impl Sequence {
         let range_slider = RangeSlider::new().visible(true);
         let layout = Layout::new().title(Title::new("Innocent Trial"))
         .x_axis(Axis::new().range_slider(range_slider))
-        .plot_background_color(NamedColor::AliceBlue);
+        .plot_background_color(NamedColor::AliceBlue)
+        .height(1000);
+        let layout = adjust_y_height(layout);
         plot.set_layout(layout);
         plot.to_html()
     }
@@ -85,9 +88,11 @@ impl<T: ?Sized, U> Captures<U> for T {}
 pub fn add_axis<'a>(plot_type : &'a SubplotType, map : &'a PlotMap) ->
     impl Fn(Box<Scatter<f64, f64>>) -> Box<Scatter<f64, f64>> + Captures<&'a ()> {
     move |trace| {
-        if let Some(y_axis) = map[plot_type] {
-            trace.y_axis(y_axis)
-        } else { trace } }
+        match map[plot_type] { 
+            Some(y_axis) => trace.y_axis(y_axis),
+            None => trace 
+        }
+    }
 }
 
 fn trace_anlg(anlg : &AnalogSeq) -> Box<Scatter<f64, f64>> {
@@ -100,4 +105,61 @@ fn trace_ddsrf_ampl(wave : &DDSSeq) -> Box<Scatter<f64, f64>> {
 
 fn trace_ddsrf_freq(wave : &DDSSeq) -> Box<Scatter<f64, f64>> {
     Scatter::new(wave.times.clone(), wave.frequency.clone())
+}
+
+pub fn adjust_y_height(layout : Layout) -> Layout {
+    let height = &[300.,400.,300.,500.,600.,0.,100.,200.];
+    let height_tot : f64 = height.iter().sum();
+    let h_gap = 40.;
+    let mut height_cum = [(0., 0.);8];
+    let height_tot = height_cum.iter_mut().enumerate()
+        .fold(0., |cum, (i, h)| {
+            let cum = cum + h_gap;
+            let cum_new = cum + height[i];
+            *h = (cum, cum_new); 
+            cum_new });
+    let domain : Vec<[f64;2]> = height_cum.iter().map(|(b, t)| [b / height_tot, t / height_tot]).collect();
+    println!("Domain Size : {:?}", domain);
+    core::array::from_fn::<_,8,_>(|i| i).iter()
+        .fold(layout, |l, i| {
+        let axis = Axis::new()
+                .domain(&domain[*i])
+                .anchor("x1")
+                .title(Title::new(&i.to_string()));
+        l.new_axis_idx(*i, axis)
+    })    
+}
+
+pub trait AccessAxis {
+    fn new_axis(self, name_axis : Option<&str>, axis : Axis) -> Self;
+    fn new_axis_idx(self, idx_axis : usize, axis : Axis) -> Self;
+}
+
+impl AccessAxis for Layout {
+    fn new_axis(self, name_axis : Option<&str>, axis : Axis) -> Self {
+        match name_axis {
+            Some("y1") => self.y_axis (axis),
+            Some("y2") => self.y_axis2(axis),
+            Some("y3") => self.y_axis3(axis),
+            Some("y4") => self.y_axis4(axis),
+            Some("y5") => self.y_axis5(axis),
+            Some("y6") => self.y_axis6(axis),
+            Some("y7") => self.y_axis7(axis),
+            Some("y8") => self.y_axis8(axis),
+            _ => self
+        }
+    }
+    fn new_axis_idx(self, idx_axis : usize, axis : Axis) -> Self {
+        match idx_axis {
+            1 => self.y_axis (axis),
+            2 => self.y_axis2(axis),
+            3 => self.y_axis3(axis),
+            4 => self.y_axis4(axis),
+            5 => self.y_axis5(axis),
+            6 => self.y_axis6(axis),
+            7 => self.y_axis7(axis),
+            8 => self.y_axis8(axis),
+            _ => self
+        }
+    }
 }
