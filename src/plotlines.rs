@@ -7,7 +7,7 @@ use plotly::common::{
     Fill, Font, Label, Mode, PlotType, Title
 };
 use plotly::layout::{
-    self, Axis, GridPattern, Layout, LayoutGrid, Margin, RangeSlider, Shape, ShapeLayer, ShapeLine, ShapeType
+    self, Axis, AxisConstrain, GridPattern, Layout, LayoutGrid, Margin, RangeSlider, Shape, ShapeLayer, ShapeLine, ShapeType
 };
 use plotly::{Bar, Plot, Scatter, Trace};
 use plotly::color::{NamedColor, Color};
@@ -125,6 +125,8 @@ pub fn adjust_y_height(layout : Layout) -> Layout {
         let axis = Axis::new()
                 .domain(&domain[*i])
                 .anchor("x1")
+                .constrain(AxisConstrain::Range)
+                .range(vec![-5.,5.])
                 .title(Title::new(&i.to_string()));
         l.new_axis_idx(*i, axis)
     })    
