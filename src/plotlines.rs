@@ -1,10 +1,10 @@
 use std::fmt::Debug;
 use std::collections::HashMap;
-use crate::sequence::{AnalogSeq, DDSSeq, DeviceDependentData, Sequence};
+use crate::sequence::{AnalogSeq, DDSSeq, DeviceDependentData, DigitalSeq, Sequence, VCOSeq};
 
 use leptos::with;
 use plotly::common::{
-    Fill, Font, Label, Mode, PlotType, Title
+    Fill, Font, Label, Line, Mode, PlotType, Title
 };
 use plotly::layout::{
     self, Axis, AxisConstrain, GridPattern, Layout, LayoutGrid, Margin, RangeSlider, Shape, ShapeLayer, ShapeLine, ShapeType
@@ -21,6 +21,7 @@ pub enum SubplotType {
     DDSRFShade,
     DigitalBlocks,
     DigitalBars,
+    DigitalLines,
 }
 
 pub type PlotMap<'a> = HashMap<SubplotType, Option<& 'a str>>;
@@ -37,12 +38,15 @@ impl Sequence {
             (SubplotType::PLLVCOFreq        , Some("y4")),
             (SubplotType::DDSRFShade        , Some("y5")),
             (SubplotType::DigitalBlocks     , Some("y6")),
-            (SubplotType::DigitalBars       , Some("y7")),            
+            (SubplotType::DigitalLines      , Some("y7")),            
         ]);
-        for trace in self.traces_anlg(&plotmap).into_iter() {
-            plot.add_trace(trace);
-        }
-        for trace in self.traces_dds(&plotmap).into_iter() {
+        let traces = [ 
+            self.traces_anlg(&plotmap), 
+            self.traces_dds(&plotmap),
+            self.traces_dig(&plotmap),
+            self.traces_vco(&plotmap),
+            ].concat();
+        for trace in traces {
             plot.add_trace(trace);
         }
         let range_slider = RangeSlider::new().visible(true);
@@ -79,6 +83,24 @@ impl Sequence {
             .collect();
         [trace_ampl, trace_freq].concat()
     }
+
+    pub fn traces_vco(&self, pm : &PlotMap) -> Vec<Box<Scatter<f64, f64>>> {
+        let info_vco : Vec<(&VCOSeq, &String)> = self.seq_channel.iter().filter_map(|seq| 
+            if let DeviceDependentData::PLLVCO(vco) = &seq.device_dependent 
+            {Some((vco, &seq.name))} else {None})
+        .collect::<Vec<_>>();
+        let add_y_ampl_axis = add_axis(&SubplotType::PLLVCOFreq, pm);
+        info_vco.iter().map(|&(d, s)| { add_y_ampl_axis(trace_vco_freq(d).name(s))} ).collect()
+    }
+
+    pub fn traces_dig(&self, pm : &PlotMap) -> Vec<Box<Scatter<f64, f64>>> {
+        let info_dig : Vec<(&DigitalSeq, &String, u8)> = self.seq_channel.iter().filter_map(|seq| 
+            if let DeviceDependentData::Digital(dig) = &seq.device_dependent 
+            {Some((dig, &seq.name, seq.index_sigchan))} else {None})
+        .collect::<Vec<_>>();
+        let add_y_ampl_axis = add_axis(&SubplotType::DigitalLines, pm);
+        info_dig.iter().map(|&(d, s, c)| { add_y_ampl_axis(trace_dig_lines(d,c).name(s))} ).collect()
+    }
 }
 
 // Should be able to avoid these lifetime annotation nonsense in the next edition of rust 
@@ -107,8 +129,19 @@ fn trace_ddsrf_freq(wave : &DDSSeq) -> Box<Scatter<f64, f64>> {
     Scatter::new(wave.times.clone(), wave.frequency.clone())
 }
 
+fn trace_vco_freq(wave : &VCOSeq) -> Box<Scatter<f64, f64>> {
+    Scatter::new(wave.times.clone(), wave.frequency.clone())
+}
+
+fn trace_dig_lines(wave : &DigitalSeq, i : u8) -> Box<Scatter<f64, f64>> {
+    let y = wave.value.clone().iter().map(|v| (i + (if *v {1} else {0})) as f64).collect::<Vec<_>>();
+    Scatter::new(wave.times.clone(), y)
+        .mode(Mode::LinesMarkers)
+        .line(Line::new().shape(plotly::common::LineShape::Hv))
+}
+
 pub fn adjust_y_height(layout : Layout) -> Layout {
-    let height = &[300.,400.,300.,500.,600.,0.,100.,200.];
+    let height = &[300.,400.,300.,500.,600.,0.,100.,1600.];
     let height_tot : f64 = height.iter().sum();
     let h_gap = 40.;
     let mut height_cum = [(0., 0.);8];
@@ -125,8 +158,6 @@ pub fn adjust_y_height(layout : Layout) -> Layout {
         let axis = Axis::new()
                 .domain(&domain[*i])
                 .anchor("x1")
-                .constrain(AxisConstrain::Range)
-                .range(vec![-5.,5.])
                 .title(Title::new(&i.to_string()));
         l.new_axis_idx(*i, axis)
     })    
