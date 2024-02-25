@@ -35,7 +35,7 @@ async fn main() {
     let addr = leptos_options.site_addr;
     let routes = generate_route_list(App);
     let sequence_ref = Arc::new(Mutex::new(Sequence::empty()));
-    let app_state = AppState { leptos_options, sequence_ref };
+    let app_state= AppState { leptos_options, sequence_ref };
 
     // build our application with a route
     let app = Router::new()
@@ -49,11 +49,9 @@ async fn main() {
         .fallback(file_and_error_handler)
         .with_state(app_state);
 
-    // run our app with hyper
-    // `axum::Server` is a re-export of `hyper::Server`
-    log::info!("listening on http://{}", &addr);
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
+    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+    logging::log!("listening on http://{}", &addr);
+    axum::serve(listener, app.into_make_service())
         .await
         .unwrap();
 }
