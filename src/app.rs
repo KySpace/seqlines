@@ -22,18 +22,18 @@ pub fn PlotLines(
         });
     let view_from_str = |file : &str| {
         match sequences::Sequence::from_json(file) {
-            Ok(seq) => view! { <iframe class="w-screen" srcdoc={seq.to_html()} /> }.into_view(),
-            Err(err) => view! {  <div>{err}</div>  }.into_view(),
+            Ok(seq) => view! { <iframe class="w-screen h-screen text-amber-700" srcdoc={seq.to_html()} /> }.into_view(),
+            Err(err) => view! {  <div class="text-red-700">{err}</div>  }.into_view(),
         }
     };
     let on_click = move |_| file_content.set("".to_string());
     view! {
-        <div class="w-screen h-full">
-        <button on:click=on_click> Clear </button>
-        <p> {file_name} </p>
-            <Suspense fallback=move || view! { <p>"Loading (Suspense Fallback)..."</p> }>                
-                {view_from_str(&file_content.get().unwrap_or_else(|| {"Error".to_string()}))}
-            </Suspense>
+        <div class="text-center">
+        <button on:click=on_click class="bg-rose-200 px-4 h-9 inline-flex items-center rounded border border-gray-300 shadow-sm text-sm font-medium text-neutral-500"> Clear </button>
+        <p class="text-teal-700"> {file_name} </p>
+        <Suspense fallback=move || view! { <p class="text-amber-700">"Loading (Suspense Fallback)..."</p> }>                
+            {view_from_str(&file_content.get().unwrap_or_else(|| {"Error".to_string()}))}
+        </Suspense>
         </div>
     }
 }
@@ -56,28 +56,13 @@ pub fn DropZone(set_file_info : WriteSignal<Vec<web_sys::File>>) -> impl IntoVie
     // let on_click = move |_| set_dropped(false);
 
     view! {
-        <div>
-            <div class="w-screen h-screen relative">
-                <p>Drop files into dropZone</p>
-                <img width="64" src="img/leptos-use-logo.svg" alt="Drop me"/>
-                <div
-                    node_ref=drop_zone_el
-                    class="flex flex-col w-screen h-screen bg-gray-400/10 justify-center items-center pt-6"
-                >
-                    <div>is_over_drop_zone: <BooleanDisplay value=is_over_drop_zone/></div>
-                    <div>dropped: <BooleanDisplay value=dropped/></div>
-                    <div class="flex flex-wrap justify-center items-center w-screen h-screen bg-gray-900/5">
-                        <For each=files key=|f| f.name() let:file>
-                            <div class="w-200px bg-black-200/10 ma-2 pa-6">
-                                <p>Name: {file.name()}</p>
-                                <p>Size: {file.size()}</p>
-                                <p>Type: {file.type_()}</p>
-                                <p>Last modified: {file.last_modified()}</p>
-                            </div>
-                        </For>
-                    </div>
-                </div>
-            </div>
+        <div 
+            node_ref=drop_zone_el
+            class="max-w-96 m-8 border-2 border-dashed border-gray-400 rounded-md
+                    px-4 py-4 justify-center text-center text-lg text-cyan-600"
+            class:drop-zone-over=move || is_over_drop_zone()
+            >
+            <p>Drop files Here!</p>
         </div>
     }
 }
@@ -123,10 +108,14 @@ fn HomePage() -> impl IntoView {
     provide_context(file_info);
     provide_context(set_file_info);
     view! {
-        <h1>"Welcome to Leptos!"</h1>
-        <DropZone set_file_info/>
-        <For each=file_info key=|f| f.name() let:file>
-            <PlotLines file/>
-        </For>        
+        <div class="flex flex-col flex-nowrap items-center">
+            <div class="flex flex-row flex-nowrap items-center">
+                <img width="64" src="img/leptos-use-logo.svg" alt="Drop me"/>
+                <DropZone set_file_info/>
+            </div>
+            <For each=file_info key=|f| f.name() let:file>
+                <PlotLines file/>
+            </For>
+        </div>
     }
 }

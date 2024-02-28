@@ -50,7 +50,7 @@ impl Sequence {
             plot.add_trace(trace);
         }
         let range_slider = RangeSlider::new().visible(true);
-        let layout = Layout::new().title(Title::new("Innocent Trial"))
+        let layout = Layout::new()
         .x_axis(Axis::new().range_slider(range_slider))
         .plot_background_color(NamedColor::AliceBlue)
         .height(1000);
