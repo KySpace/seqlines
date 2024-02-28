@@ -39,7 +39,7 @@ pub fn PlotLines(
 }
 
 #[component]
-pub fn DropZone() -> impl IntoView {
+pub fn DropZone(set_file_info : WriteSignal<Vec<web_sys::File>>) -> impl IntoView {
     let (dropped, set_dropped) = create_signal(false);    
     let drop_zone_el = create_node_ref::<Div>();   
 
@@ -49,7 +49,7 @@ pub fn DropZone() -> impl IntoView {
     } = use_drop_zone_with_options(
         drop_zone_el,
         UseDropZoneOptions::default()
-            .on_drop(move |_| set_dropped(true))
+            .on_drop(move |e| set_file_info.set(e.files))
             .on_enter(move |_| set_dropped(false)),
     );
     
@@ -74,7 +74,6 @@ pub fn DropZone() -> impl IntoView {
                                 <p>Type: {file.type_()}</p>
                                 <p>Last modified: {file.last_modified()}</p>
                             </div>
-                            <PlotLines file=file/>
                         </For>
                     </div>
                 </div>
@@ -119,8 +118,15 @@ pub fn App() -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
+    let (file_info, set_file_info) = 
+        create_signal::<Vec<web_sys::File>>(vec![]);
+    provide_context(file_info);
+    provide_context(set_file_info);
     view! {
         <h1>"Welcome to Leptos!"</h1>
-        <DropZone/>
+        <DropZone set_file_info/>
+        <For each=file_info key=|f| f.name() let:file>
+            <PlotLines file/>
+        </For>        
     }
 }
