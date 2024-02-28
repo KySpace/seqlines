@@ -100,8 +100,9 @@ impl Sequence {
     pub fn replace(&mut self, seq : Sequence) {
         *self = seq;
     }
-    pub fn update_from_json(&mut self, js : &str) {
-        self.seq_channel = serde_json::from_str(js).unwrap();
+    pub fn update_from_json(&mut self, js : &str) -> Result<(), String> {
+        self.seq_channel = serde_json::from_str(js).map_err(|_| "unable to convert json to sequence")?;
+        Ok(())
     }
     pub fn into_json(&self) -> String {
         serde_json::to_string(&self.seq_channel).unwrap()
@@ -109,4 +110,9 @@ impl Sequence {
     pub fn empty() -> Self {
         Sequence{ seq_channel : vec![] }
     }  
+    pub fn from_json(js : &str) -> Result<Self, String> {
+        let mut seq = Sequence::empty();
+        seq.update_from_json(js)?;
+        Ok(seq)
+    }
 }

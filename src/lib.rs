@@ -1,9 +1,7 @@
 pub mod app;
 pub mod error_template;
-pub mod sequence;
-pub mod seqserv;    
+pub mod sequences;
 pub mod plotlines;
-
 #[cfg(feature = "ssr")]
 pub mod fileserv;
 

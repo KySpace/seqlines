@@ -1,29 +1,22 @@
-use std::sync::Arc;
+use axum::{
+    Router,
+    routing::get,
+    extract::{State, FromRef},
+};
 
-use leptos::LeptosOptions;
-use seqlines::{app::HomePage, sequence::Sequence};
-use seqlines::seqserv::SequenceRef;
-use axum::{extract::State, response::Html, routing::get, Router};
-
-#[derive(Clone, Debug, axum::extract::FromRef)]
-struct AppState {
-    leptos_options : LeptosOptions,
-    sequence_ref : SequenceRef,
+#[derive(FromRef, Clone)]
+struct  AppState {
+    info : String,
 }
 
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
-    use std::sync::{Mutex, Arc};
-
-    use axum::{routing::post, routing::get, Router};
+    use axum::Router;
     use leptos::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
-    use seqlines::app::*;
-    use seqlines::fileserv::file_and_error_handler;
-    use seqlines::sequence::Sequence;
-
-    simple_logger::init_with_level(log::Level::Debug).expect("couldn't initialize logging");
+    use try_leptos6::app::*;
+    use try_leptos6::fileserv::file_and_error_handler;
 
     // Setting get_configuration(None) means we'll be using cargo-leptos's env values
     // For deployment these variables are:
@@ -34,34 +27,18 @@ async fn main() {
     let leptos_options = conf.leptos_options;
     let addr = leptos_options.site_addr;
     let routes = generate_route_list(App);
-    let sequence_ref = Arc::new(Mutex::new(Sequence::empty()));
-    let app_state= AppState { leptos_options, sequence_ref };
 
     // build our application with a route
     let app = Router::new()
-        .route("/state", get(seqlines::seqserv::display_sequence))
-        .route("/state", post(seqlines::seqserv::update_sequence))
-        .route("/state/display", get(seqlines::seqserv::display_plot_content))
-        // .route("/", get(get_leptos_component))
-        .route("/test", get(test_route))
-        .route("/api/*fn_name", post(leptos_axum::handle_server_fns))
-        .leptos_routes(&app_state, routes, App)
+        .leptos_routes(&leptos_options, routes, App)
         .fallback(file_and_error_handler)
-        .with_state(app_state);
+        .with_state(leptos_options);
 
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
     logging::log!("listening on http://{}", &addr);
     axum::serve(listener, app.into_make_service())
         .await
         .unwrap();
-}
-
-async fn test_route() -> &'static str {
-    "A test on the server."
-}
-
-async fn get_leptos_component(State(seq): State<SequenceRef>) -> Html<String> {
-    leptos::ssr::render_to_string(HomePage).to_string().into()
 }
 
 #[cfg(not(feature = "ssr"))]

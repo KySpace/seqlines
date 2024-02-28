@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 use std::collections::HashMap;
-use crate::sequence::{AnalogSeq, DDSSeq, DeviceDependentData, DigitalSeq, Sequence, VCOSeq};
+use crate::sequences::{AnalogSeq, DDSSeq, DeviceDependentData, DigitalSeq, Sequence, VCOSeq};
 
 use leptos::with;
 use plotly::common::{

@@ -1,81 +1,86 @@
 use crate::error_template::{AppError, ErrorTemplate};
+use crate::sequences;
+use crate::plotlines;
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
-use crate::sequence::Sequence;
+use leptos::html::Div;
+use leptos_use::{use_drop_zone_with_options, UseDropZoneOptions, UseDropZoneReturn};
+use leptos_use::docs::{demo_or_body, BooleanDisplay};
 
-use plotly::common::{
-    Fill, Font, Mode, Title,
-};
-use plotly::layout::{
-    Axis, GridPattern, Layout, LayoutGrid, Margin, Shape, ShapeLayer, ShapeLine,
-    ShapeType, RangeSlider,
-};
-use plotly::{Bar, Plot, Scatter};
-use plotly::color::{NamedColor, Color};
+#[component]
+pub fn PlotLines(
+        #[prop()]
+        file : web_sys::File
+    ) -> impl IntoView {
+    let file_name = file.name();
+    let file_content = create_resource(
+        | | (), 
+        move |_| { 
+            let text = file.text();
+            async move { wasm_bindgen_futures::JsFuture::from(text).await.unwrap().as_string().unwrap() }
+        });
+    let view_from_str = |file : &str| {
+        match sequences::Sequence::from_json(file) {
+            Ok(seq) => view! { <iframe class="w-screen" srcdoc={seq.to_html()} /> }.into_view(),
+            Err(err) => view! {  <div>{err}</div>  }.into_view(),
+        }
+    };
+    let on_click = move |_| file_content.set("".to_string());
+    view! {
+        <div class="w-screen h-full">
+        <button on:click=on_click> Clear </button>
+        <p> {file_name} </p>
+            <Suspense fallback=move || view! { <p>"Loading (Suspense Fallback)..."</p> }>                
+                {view_from_str(&file_content.get().unwrap_or_else(|| {"Error".to_string()}))}
+            </Suspense>
+        </div>
+    }
+}
 
-fn test(name : &str) -> String {
-    let trace1 = Scatter::new(vec![1., 1.5, 2.], vec![1, 2, 1]).name("(1,1)");
-    let trace2 = Scatter::new(vec![1, 2], vec![1, 2])
-        .name("(1,2,1)")
-        .x_axis("x1")
-        .y_axis("y2");
-    let trace3 = Scatter::new(vec![1, 2], vec![1, 2])
-        .name("(1,2,2)")
-        .x_axis("x1")
-        .y_axis("y4");
-    let trace4 = Scatter::new(vec![1, 2], vec![1, 2])
-        .name("{(2,1), (2,2)}")
-        .x_axis("x1")
-        .y_axis("y3");
+#[component]
+pub fn DropZone() -> impl IntoView {
+    let (dropped, set_dropped) = create_signal(false);    
+    let drop_zone_el = create_node_ref::<Div>();   
 
-    let mut plot = Plot::new();
-    plot.add_trace(trace1);
-    plot.add_trace(trace2);
-    plot.add_trace(trace3);
-    plot.add_trace(trace4);
-
-    let mut layout = Layout::new()
-        .x_axis(Axis::new().range(vec![0.0, 7.0]).show_grid(false).visible(false))
-        .y_axis(Axis::new().range(vec![0.0, 3.5]).range_mode(plotly::layout::RangeMode::NonNegative).show_line(false))
-        .plot_background_color(NamedColor::LightGrey);
-
-    layout.add_shape(
-        Shape::new()
-            .x_ref("x")
-            .y_ref("y")
-            .shape_type(ShapeType::Rect)
-            .x0(1.)
-            .y0(1.)
-            .x1(2.)
-            .y1(3.)
-            .line(ShapeLine::new().color(NamedColor::RoyalBlue)),
+    let UseDropZoneReturn {
+        is_over_drop_zone,
+        files,
+    } = use_drop_zone_with_options(
+        drop_zone_el,
+        UseDropZoneOptions::default()
+            .on_drop(move |_| set_dropped(true))
+            .on_enter(move |_| set_dropped(false)),
     );
-    layout.add_shape(
-        Shape::new()
-            .x_ref("x")
-            .y_ref("y")
-            .shape_type(ShapeType::Rect)
-            .x0(3.)
-            .y0(1.)
-            .x1(6.)
-            .y1(2.)
-            .line(ShapeLine::new().color(NamedColor::RoyalBlue).width(2.))
-            .fill_color(NamedColor::LightSkyBlue),
-    );
-    let range_slider = RangeSlider::new().visible(true);
-    let layout = Layout::new().title(Title::new(name))
-        .x_axis(Axis::new().domain(&[0., 1.]).anchor("x1").range_slider(range_slider).show_line(true).mirror(true))
-        .y_axis(Axis::new().domain(&[0., 0.2]).anchor("x1").show_line(true).mirror(true))
-        .x_axis2(Axis::new().domain(&[0., 1.]).anchor("y2"))
-        .y_axis2(Axis::new().domain(&[0.5, 0.75]).anchor("x1"))
-        .x_axis3(Axis::new().domain(&[0., 1.]).anchor("y3"))
-        .y_axis3(Axis::new().domain(&[0.25, 0.45]).anchor("x1"))
-        .x_axis4(Axis::new().domain(&[0., 1.]).anchor("y4"))
-        .y_axis4(Axis::new().domain(&[0.8, 1.]).anchor("x1"))
-        .plot_background_color(NamedColor::AliceBlue);
-    plot.set_layout(layout);
-    plot.to_html()
+    
+    // let on_click = move |_| set_dropped(false);
+
+    view! {
+        <div>
+            <div class="w-screen h-screen relative">
+                <p>Drop files into dropZone</p>
+                <img width="64" src="img/leptos-use-logo.svg" alt="Drop me"/>
+                <div
+                    node_ref=drop_zone_el
+                    class="flex flex-col w-screen h-screen bg-gray-400/10 justify-center items-center pt-6"
+                >
+                    <div>is_over_drop_zone: <BooleanDisplay value=is_over_drop_zone/></div>
+                    <div>dropped: <BooleanDisplay value=dropped/></div>
+                    <div class="flex flex-wrap justify-center items-center w-screen h-screen bg-gray-900/5">
+                        <For each=files key=|f| f.name() let:file>
+                            <div class="w-200px bg-black-200/10 ma-2 pa-6">
+                                <p>Name: {file.name()}</p>
+                                <p>Size: {file.size()}</p>
+                                <p>Type: {file.type_()}</p>
+                                <p>Last modified: {file.last_modified()}</p>
+                            </div>
+                            <PlotLines file=file/>
+                        </For>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 }
 
 #[component]
@@ -88,7 +93,7 @@ pub fn App() -> impl IntoView {
 
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
-        <Stylesheet id="leptos" href="/pkg/seqlines.css"/>
+        <Stylesheet id="leptos" href="/pkg/try-leptos6.css"/>
 
         // sets the document title
         <Title text="Welcome to Leptos"/>
@@ -113,8 +118,9 @@ pub fn App() -> impl IntoView {
 
 /// Renders the home page of your application.
 #[component]
-pub fn HomePage() -> impl IntoView {
+fn HomePage() -> impl IntoView {
     view! {
-        <iframe src="/state/display" title="plotly plots" style="border:none;" width="100%" height="1000"></iframe>
+        <h1>"Welcome to Leptos!"</h1>
+        <DropZone/>
     }
 }
