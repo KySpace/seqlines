@@ -77,7 +77,7 @@ pub fn App() -> impl IntoView {
 
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
-        <Stylesheet id="leptos" href="/pkg/try-leptos6.css"/>
+        <Stylesheet id="leptos" href="/pkg/seqlines.css"/>
 
         // sets the document title
         <Title text="Welcome to Leptos"/>
@@ -102,7 +102,7 @@ pub fn App() -> impl IntoView {
 
 /// Renders the home page of your application.
 #[component]
-fn HomePage() -> impl IntoView {
+pub fn HomePage() -> impl IntoView {
     let (file_info, set_file_info) = 
         create_signal::<Vec<web_sys::File>>(vec![]);
     provide_context(file_info);

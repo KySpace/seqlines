@@ -1,10 +1,5 @@
-use axum::{
-    Router,
-    routing::get,
-    extract::{State, FromRef},
-};
-
-#[derive(FromRef, Clone)]
+#[cfg(feature = "ssr")]
+#[derive(axum::extract::FromRef, Clone)]
 struct  AppState {
     info : String,
 }
@@ -12,11 +7,11 @@ struct  AppState {
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
-    use axum::Router;
+    use axum::{Router, routing::get};
     use leptos::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
-    use try_leptos6::app::*;
-    use try_leptos6::fileserv::file_and_error_handler;
+    use seqlines::app::*;
+    use seqlines::fileserv::file_and_error_handler;
 
     // Setting get_configuration(None) means we'll be using cargo-leptos's env values
     // For deployment these variables are:
@@ -46,4 +41,15 @@ pub fn main() {
     // no client-side main function
     // unless we want this to work with e.g., Trunk for a purely client-side app
     // see lib.rs for hydration function instead
+    use leptos::html::Div;
+    use leptos_use::docs::{demo_or_body};
+    use leptos::*;
+    use seqlines::app::HomePage;
+
+    _ = console_log::init_with_level(log::Level::Debug);
+    console_error_panic_hook::set_once();
+
+    mount_to(demo_or_body(), || {
+        view! { <HomePage/> }
+    })
 }
